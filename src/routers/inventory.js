@@ -2,6 +2,8 @@ const express = require('express')
 const router = new express.Router()
 const Inno = require('../models/inventorys')
 const auth = require('../middleware/auth')
+const multer = require('multer')
+const sharp = require('sharp')
 
 router.post('/createInno' ,auth, async(req,res) =>{
 
@@ -76,6 +78,40 @@ router.patch('/updateInno/:id',auth, async(req,res) => {
         res.status(301).send(error)
     }
 })
+
+const upload = multer({
+    limits:{
+        fileSize : 500000
+    }
+})
+
+router.post('/innventry/avatar/:id',auth,upload.single('avatar'), async(req,res)=>{
+    const buffer = await sharp(req.file.buffer).png().toBuffer()
+    try{
+        const data = await Inno.findOne({_id:req.params.id, owner:req.user._id})
+        if(!data)
+            return res.status(402).send('no find inventry')
+        
+        data.avatar = buffer
+        await data.save()
+        console.log("image is updload")
+        res.status(201).send(data)
+    }catch(error){
+        res.send(error)
+    }
+})
+
+router.delete('/innventry/avatar/:id', auth, async(req,res)=>{
+    try {
+        const data = await Inno.findOne({_id:req.params.id, owner:req.user._id})
+        data.avatar = undefined
+        await data.save()
+        res.status(201).send('delete image scusessfully..')
+    } catch (error) {
+        res.send(error)
+    }
+})
+
 
 console.log("innoventry router..")
 module.exports = router

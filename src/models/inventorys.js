@@ -23,7 +23,12 @@ const innoventrySchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         require:true,
         ref:'users'
+    },
+    avatar:{
+        type:Buffer
     }
+},{
+    timestamps:true
 })
 
 const Inno = mongoose.model('inno',innoventrySchema)

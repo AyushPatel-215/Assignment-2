@@ -48,6 +48,15 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+//to hide some details from customer
+userSchema.methods.toJSON = function() {
+    const user = this
+    const userObject = user.toObject()
+    delete userObject.password
+    delete userObject.tokens
+    return userObject
+}
+
 // genrate autntication when create user 
 userSchema.methods.genrateAuthToken = async function(){   
     const user = this
@@ -64,6 +73,14 @@ userSchema.pre('save', async function (next) {
     if(user.isModified('password')){
         user.password = await bcrypt.hash(user.password,8)
     }
+    next()
+})
+
+// this is for when user is remove all inventry delete
+userSchema.pre("deleteOne", {document:true, query: false}, async function(next){
+    const user = this
+    console.log('all inventry for delete')
+    await Inno.deleteMany({owner:user._id})
     next()
 })
 
